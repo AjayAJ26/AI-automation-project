@@ -1,103 +1,149 @@
-# 🤖 AI Automation Projects
+# 💱 Automated Currency Exchange Rate Ingestion Pipeline: n8n + Google Sheets
 
-Welcome to my **AI Automation Projects** repository.
-
-This repository contains a collection of practical **AI-powered automation workflows** that I have built to explore how AI, APIs, databases, and workflow automation can be combined to solve real-world problems and automate repetitive tasks.
-
-The projects are built primarily using **n8n, AI/LLMs, APIs, Supabase/PostgreSQL, Gmail, and Google Sheets**.
+*An automated data extraction and logging pipeline built in n8n that fetches live foreign exchange rates via REST API and automatically appends structured financial data into Google Sheets for analytics and reporting.*
 
 ---
 
-## 🚀 Projects
+## ❗ Problem Statement  
 
-### 💱 1. Currency Exchange Automation
+Financial analysts and data teams often need up-to-date foreign exchange (FX) rates to track pricing, calculate currency adjustments, and normalize international revenue:
 
-An automated workflow that retrieves **currency exchange rates through an API** and stores the processed data in **Google Sheets**.
+- Manually looking up daily exchange rates and copying values into spreadsheets is time-consuming and error-prone  
+- Inconsistent update schedules lead to outdated figures across financial reports and dashboards  
+- Manual data entry creates gaps and lacks an auditable historical trace  
 
-**Key Technologies:**
-- n8n
-- HTTP/API
-- Currency Exchange API
-- Google Sheets
+To eliminate these inefficiencies, this project provides a **lightweight, scheduled automation pipeline** to fetch live currency rates and log them systematically without manual intervention.
 
 ---
 
-### 🧠 2. AI SQL Agent
+## 📝 Project Overview  
 
-An AI-powered agent that allows users to ask questions about database data using **natural language**.
+This project demonstrates how to build an end-to-end data ingestion pipeline using **n8n** that integrates an external financial REST API with **Google Sheets** for real-time tracking and downstream reporting.
 
-The agent understands the user's question, identifies the relevant database information, generates an appropriate **SQL query**, and retrieves the result from PostgreSQL.
-
-**Key Technologies:**
-- n8n
-- AI / LLM
-- PostgreSQL
-- Supabase
-- SQL
-- AI Agent / Tool Calling
+### 🎯 Objective  
+- Automate real-time FX rate extraction via API  
+- Eliminate manual spreadsheet updates  
+- Build a persistent, historical audit trail of currency rate fluctuations  
+- Provide clean, pre-structured tabular data ready for analysis in Excel or Power BI  
 
 ---
 
-### 🔍 3. AI Data Health Checker
+## 🚀 Solution  
 
-An AI-powered workflow designed to perform **read-only data quality checks** on a PostgreSQL database.
+Designed an **n8n automated workflow** that initiates an HTTP GET request to the ExchangeRate API (`v6.exchangerate-api.com`), extracts currency rate metrics from the JSON response, and automatically appends each payload as a new row in a target Google Sheet.
 
-The workflow can inspect database information and identify potential data-quality issues without modifying the underlying data.
-
-**Key Technologies:**
-- n8n
-- AI / LLM
-- PostgreSQL
-- Supabase
-- SQL
-- AI Agent
+### 🛠️ Tools & Technologies  
+- **n8n** (Workflow Orchestration & Automation)  
+- **HTTP Request / REST API** (ExchangeRate API — `GET: https://v6.exchangerate-api.com/...`)  
+- **Google Sheets** (Cloud Spreadsheet Storage / Data Destination)  
+- **JSON** (Data Serialization & Payload Parsing)  
 
 ---
 
-### 📧 4. Automated Email Report Processing
+## 📊 Workflow Architecture  
 
-An automation workflow for processing incoming **email reports and attachments**.
-
-The workflow can monitor incoming emails, identify relevant reports, process attached files such as CSVs, and continue the data workflow automatically.
-
-**Key Technologies:**
-- n8n
-- Gmail / Email
-- CSV
-- Data Processing
-- Automation Workflows
-
----
-
-## 🛠️ Technologies Used
-
-| Category | Technologies |
-|---|---|
-| Workflow Automation | n8n |
-| AI | AI / LLMs, AI Agents |
-| APIs | REST API, HTTP Requests |
-| Database | PostgreSQL, Supabase |
-| Querying | SQL |
-| Data Storage | Google Sheets |
-| Email Automation | Gmail |
-| Data Processing | CSV, JSON |
+```text
+[ Trigger: Execute Workflow / Schedule ]
+                  │
+                  ▼ (1 Item)
+         [ HTTP Request Node ]
+   GET: [https://v6.exchangerate-api.com/](https://v6.exchangerate-api.com/)...
+                  │
+                  ▼ (1 Item)
+      [ Google Sheets Node ]
+         append: sheet
+                  │
+                  ▼ (1 Item)
+       [ Target Spreadsheet Updated ]
+```
 
 ---
 
-## 📌 Repository Structure
+## 📌 Workflow Nodes & Logic  
 
-Each automation project is maintained separately so that the workflows, configurations, and documentation for each project can be explored independently.
-
-The **main branch** contains this repository overview, while the individual automation projects are maintained in their respective branches.
-
----
-
-## 👨‍💻 About
-
-I am a **Data Analyst** interested in combining **Data Analytics, AI, and Automation** to build practical solutions for real-world business problems.
-
-This repository documents my journey of building and experimenting with **AI-powered automation workflows**.
+| Node | Type | Purpose | Configuration |
+|---|---|---|---|
+| **When clicking 'Execute workflow'** | Trigger | Initiates pipeline execution on demand (or via cron/interval) | Manual / Scheduled trigger |
+| **HTTP Request** | Data Fetch | Calls the ExchangeRate API endpoint | `GET` request fetching JSON exchange rate data |
+| **Append row in sheet** | Data Destination | Appends response fields into designated columns | Target Spreadsheet ID + Column Mapping |
 
 ---
 
-⭐ Feel free to explore the projects and follow along as I continue building more AI automation solutions.
+## 🔢 Data Schema (Google Sheets Target)  
+
+| Column Header | Data Type | Example Value | Description |
+|---|---|---|---|
+| `Timestamp` | Datetime | `2026-09-05 18:45:00` | Workflow execution time |
+| `Base_Currency` | String | `USD` | Source currency |
+| `Target_Currency` | String | `INR` / `EUR` | Converted currency |
+| `Conversion_Rate` | Float | `83.45` | Exchange rate at execution |
+| `Status` | String | `SUCCESS` | API execution status |
+
+---
+
+## 🌟 Technical Impact  
+
+- **Hands-Off Maintenance:** Automatically syncs exchange rates without recurring human effort  
+- **Real-Time Visibility:** Ensures downstream models always reference the latest currency metrics  
+- **Extensibility:** Easily expandable with cron schedules (e.g., run daily at 9:00 AM) or notification webhooks (Slack/Email alerts)  
+
+---
+
+## 📁 Repository Structure  
+
+```text
+├── workflows/
+│   └── currency_exchange_automation.json  # Exported n8n workflow file
+├── docs/
+│   └── workflow_canvas.png                # n8n editor pipeline screenshot
+├── .env.example                           # Template for API credentials
+├── .gitignore
+└── README.md
+```
+
+---
+
+## ⚙️ How to Run This Project  
+
+### 1. Prerequisites
+- An active instance of [n8n](https://n8n.io/) (n8n Cloud or self-hosted via Docker).
+- An API key from [ExchangeRate-API](https://www.exchangerate-api.com/).
+- A Google account with a configured Google Sheet.
+
+### 2. Configure Google Sheets & API
+1. Create a blank Google Sheet with column headers: `Timestamp`, `Base_Currency`, `Target_Currency`, `Conversion_Rate`, `Status`.
+2. Connect your Google account credentials inside n8n (**Settings** > **Credentials** > **Google Sheets OAuth2 API**).
+
+### 3. Import & Configure n8n Workflow
+1. In n8n, go to **Workflows** > **Import from File**.
+2. Select `workflows/currency_exchange_automation.json`.
+3. Open the **HTTP Request** node and insert your ExchangeRate API endpoint URL and API Key.
+4. Open the **Append row in sheet** node and select your target Google Spreadsheet and Sheet name.
+5. Click **Execute workflow** to verify the test execution.
+
+---
+
+## 🙏 Acknowledgements  
+
+- [Codebasics](https://codebasics.io/) — Dhaval Patel and Hemanand Vadivel for practical guidance on connecting modern automation tools to data analytics workflows.  
+- [n8n.io](https://n8n.io/) for workflow orchestration capabilities.  
+
+---
+
+## 📌 Conclusion  
+
+This project demonstrates:  
+- Connecting external REST APIs to persistent data destinations using visual automation  
+- Processing JSON payloads within n8n  
+- Building production-grade automation patterns applicable to any recurring data collection task  
+
+---
+
+## 📬 Contact  
+
+🔗 **LinkedIn:** www.linkedin.com/in/ajay-jadhav-8381aa347  
+📧 **Email:** aj.ajayjadhav01@gmail.com  
+
+---
+
+⭐ *If you found this project helpful, consider giving it a star!*
