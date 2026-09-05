@@ -1,103 +1,182 @@
-# 🤖 AI Automation Projects
+# 📬 Automated Email-to-Database ETL Pipeline: n8n + Gmail + Supabase (PostgreSQL)
 
-Welcome to my **AI Automation Projects** repository.
-
-This repository contains a collection of practical **AI-powered automation workflows** that I have built to explore how AI, APIs, databases, and workflow automation can be combined to solve real-world problems and automate repetitive tasks.
-
-The projects are built primarily using **n8n, AI/LLMs, APIs, Supabase/PostgreSQL, Gmail, and Google Sheets**.
+*An event-driven ETL automation pipeline built with n8n that listens for incoming CSV email attachments in Gmail, parses and transforms tabular data, and automatically inserts structured records into a Supabase (PostgreSQL) database.*
 
 ---
 
-## 🚀 Projects
+## ❗ Problem Statement  
 
-### 💱 1. Currency Exchange Automation
+Data analysts and operations teams frequently receive recurring business reports, transactional exports, and vendor datasets via email:
 
-An automated workflow that retrieves **currency exchange rates through an API** and stores the processed data in **Google Sheets**.
+- Manually downloading attachments, opening spreadsheets, and running database inserts wastes hours of analytical time  
+- Delayed manual data entry causes lags between operational transactions and live dashboard updates  
+- Human errors during manual file processing introduce dirty records, schema mismatches, and duplicate data  
 
-**Key Technologies:**
-- n8n
-- HTTP/API
-- Currency Exchange API
-- Google Sheets
+To overcome this bottleneck, this project introduces a **fully automated, hands-off ingestion pipeline** that processes inbound file attachments and synchronizes records directly into a persistent relational database.
 
 ---
 
-### 🧠 2. AI SQL Agent
+## 📝 Project Overview  
 
-An AI-powered agent that allows users to ask questions about database data using **natural language**.
+This project demonstrates how to build an end-to-end data integration pipeline using **n8n** connected to **Gmail** and **Supabase (PostgreSQL)**, shifting routine data collection into a completely autonomous process as part of my learning journey with **Codebasics**.
 
-The agent understands the user's question, identifies the relevant database information, generates an appropriate **SQL query**, and retrieves the result from PostgreSQL.
-
-**Key Technologies:**
-- n8n
-- AI / LLM
-- PostgreSQL
-- Supabase
-- SQL
-- AI Agent / Tool Calling
+### 🎯 Objective  
+- Automate file ingestion directly from inbox to database  
+- Extract, parse, and structure incoming CSV attachment data automatically  
+- Eliminate manual file downloads and manual SQL `INSERT` workflows  
+- Ensure analytics data warehouses are updated in near real-time  
 
 ---
 
-### 🔍 3. AI Data Health Checker
+## 🚀 Solution  
 
-An AI-powered workflow designed to perform **read-only data quality checks** on a PostgreSQL database.
+Designed an **n8n event-driven pipeline** that listens for incoming emails with attachments via the Gmail Trigger, extracts the CSV payload into structured JSON items using the Extract from File node, and performs bulk insertion into a target table in Supabase (PostgreSQL).
 
-The workflow can inspect database information and identify potential data-quality issues without modifying the underlying data.
-
-**Key Technologies:**
-- n8n
-- AI / LLM
-- PostgreSQL
-- Supabase
-- SQL
-- AI Agent
+### 🛠️ Tools & Technologies  
+- **n8n** (Workflow Orchestration & Automation Engine)  
+- **Gmail Trigger** (OAuth2 Event-driven Email Ingestion)  
+- **Extract from File Node** (Binary CSV Parsing & Transformation)  
+- **Supabase / PostgreSQL** (Cloud Relational Database & Backend Storage)  
+- **SQL** (Table Schema Definition & Constraints)  
 
 ---
 
-### 📧 4. Automated Email Report Processing
+## 📸 Workflow & Execution
 
-An automation workflow for processing incoming **email reports and attachments**.
+### workflow
+The workflow activates on receiving an email, extracts row items from the attached CSV, and streams the records directly into the Supabase database:
 
-The workflow can monitor incoming emails, identify relevant reports, process attached files such as CSVs, and continue the data workflow automatically.
+```text
+[ Gmail Trigger: New Email with Attachment ]
+                      │
+                      ▼ (1 Item)
+         [ Extract from File: CSV ]
+                      │
+                      ▼ (10 Items)
+       [ Insert rows in a table: Supabase ]
+                      │
+                      ▼ (10 Items)
+           [ PostgreSQL Updated ]
+```
 
-**Key Technologies:**
-- n8n
-- Gmail / Email
-- CSV
-- Data Processing
-- Automation Workflows
-
----
-
-## 🛠️ Technologies Used
-
-| Category | Technologies |
-|---|---|
-| Workflow Automation | n8n |
-| AI | AI / LLMs, AI Agents |
-| APIs | REST API, HTTP Requests |
-| Database | PostgreSQL, Supabase |
-| Querying | SQL |
-| Data Storage | Google Sheets |
-| Email Automation | Gmail |
-| Data Processing | CSV, JSON |
+### 2. worlflow
+<img width="800" height="368" alt="image" src="https://github.com/user-attachments/assets/6c6afddb-90a1-49a8-9d4d-4ce2d6045613" />
 
 ---
 
-## 📌 Repository Structure
+## 📌 Workflow Nodes & Logic  
 
-Each automation project is maintained separately so that the workflows, configurations, and documentation for each project can be explored independently.
-
-The **main branch** contains this repository overview, while the individual automation projects are maintained in their respective branches.
-
----
-
-## 👨‍💻 About
-
-I am a **Data Analyst** interested in combining **Data Analytics, AI, and Automation** to build practical solutions for real-world business problems.
-
-This repository documents my journey of building and experimenting with **AI-powered automation workflows**.
+| Node | Type | Purpose | Configuration |
+|---|---|---|---|
+| **Gmail Trigger** | Event Trigger | Listens for new incoming emails with file attachments | Filters on subject tags, sender, or unread status |
+| **Extract from File** | Data Transformation | Decodes binary data and converts CSV rows into JSON objects | Operation: `Extract From CSV` |
+| **Insert rows in a table** | Data Destination | Performs batch inserts into the Supabase PostgreSQL table | Selected Table: Target database table mapping |
 
 ---
 
-⭐ Feel free to explore the projects and follow along as I continue building more AI automation solutions.
+## 🔢 Database Schema & Setup (Supabase)  
+
+**Primary Engine:** Supabase (Cloud PostgreSQL)  
+
+### 📂 Sample SQL Schema  
+
+```sql
+-- Schema for automated transaction or operational records
+CREATE TABLE IF NOT EXISTS customer_orders (
+    order_id VARCHAR(50) PRIMARY KEY,
+    customer_name VARCHAR(100) NOT NULL,
+    order_date DATE NOT NULL,
+    amount NUMERIC(10, 2) NOT NULL,
+    status VARCHAR(50) DEFAULT 'Pending',
+    ingested_at TIMESTAMPTZ DEFAULT NOW()
+);
+```
+
+---
+
+## 📑 Output Data & Verification
+
+### 📂 Sample Ingested Records
+
+| order_id | customer_name | order_date | amount | status | ingested_at |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| `ORD-9021` | Acme Corp | `2026-09-01` | 1450.00 | Completed | `2026-09-05 18:45:00` |
+| `ORD-9022` | Nexus Retail | `2026-09-02` | 820.50 | Completed | `2026-09-05 18:45:00` |
+| `ORD-9023` | Global Tech | `2026-09-03` | 2300.00 | Completed | `2026-09-05 18:45:00` |
+
+---
+
+## 🌟 Technical Impact  
+
+- **Zero-Touch ETL:** Automatically captures and loads CSV records the moment an email lands in the inbox  
+- **Scalable Batch Processing:** Handles multi-row batches (demonstrated with 10 records per execution) without performance drops  
+- **Error Reduction:** Removes data entry errors by streaming raw CSV data directly into strongly-typed PostgreSQL schemas  
+
+---
+
+## 📁 Repository Structure  
+
+```text
+├── workflows/
+│   └── email_csv_to_supabase_workflow.json   # Exported n8n workflow file
+├── sql/
+│   └── schema.sql                            # Supabase table definitions and schemas
+├── docs/
+│   └── workflow_canvas.png                   # Canvas screenshot of the n8n pipeline
+├── data/
+│   └── sample_input.csv                      # Sample input file used for pipeline testing
+├── .env.example                              # Template for database & API credentials
+├── .gitignore
+└── README.md
+```
+
+---
+
+## ⚙️ How to Run This Project  
+
+### 1. Prerequisites
+- An active instance of [n8n](https://n8n.io/) (n8n Cloud or self-hosted via Docker).
+- A [Supabase](https://supabase.com/) project with PostgreSQL access.
+- A Google account with Gmail API access enabled.
+
+### 2. Configure Database
+1. Open the **SQL Editor** in your Supabase dashboard.
+2. Run the table creation script from `sql/schema.sql` to initialize your destination table.
+
+### 3. Connect Credentials in n8n
+- **Gmail OAuth2:** Connect your Gmail account under **Settings** > **Credentials**.
+- **Supabase / PostgreSQL:** Add your Supabase host, database name, port (`5432`), user, and password credentials.
+
+### 4. Import & Activate Workflow
+1. In n8n, navigate to **Workflows** > **Import from File**.
+2. Select `workflows/email_csv_to_supabase_workflow.json`.
+3. In the **Gmail Trigger** node, set your filter criteria (e.g., label or subject line filter).
+4. In the **Insert rows in a table** node, select your target database table and map the column fields.
+5. Toggle the workflow to **Active** to begin live listening.
+
+---
+
+## 🙏 Acknowledgements  
+
+- [Codebasics](https://codebasics.io/) — Dhaval Patel and Hemanand Vadivel for hands-on, industry-oriented training combining Data Analytics with modern AI automation architectures.  
+- [n8n.io](https://n8n.io/) and [Supabase](https://supabase.com/) for developer-friendly data pipeline and orchestration tooling.  
+
+---
+
+## 📌 Conclusion  
+
+This project highlights:  
+- Building production-grade, event-driven data ingestion without writing complex server code  
+- Handling binary file attachments and decoding them into tabular database entities  
+- Bridging communication tools (Gmail) with analytical data warehouses (Supabase/PostgreSQL)  
+
+---
+
+## 📬 Contact  
+
+🔗 **LinkedIn:** www.linkedin.com/in/ajay-jadhav-8381aa347  
+📧 **Email:** aj.ajayjadhav01@gmail.com  
+
+---
+
+⭐ *If you found this project useful, consider giving it a star!*
